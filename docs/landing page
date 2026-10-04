@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedestrian Language Research: A language model trained on nothing but the crowd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3F4EE;
+    --paper-raised:#FFFFFF;
+    --ink:#14181A;
+    --ink-soft:#4B5457;
+    --ink-mute:#8A9190;
+    --line:#DBDAD0;
+    --line-strong:#C3C2B6;
+    --signal:#1F5C56;
+    --signal-deep:#123934;
+    --signal-soft:#E5EEEA;
+    --data:#A85423;
+    --data-soft:#F2E6D8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 48px;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;}
+  a{color:inherit;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--signal);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{content:'';width:16px;height:1px;background:var(--signal);}
+
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(243,244,238,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    max-width:1180px;margin:0 auto;padding:0 48px;
+    height:64px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{font-family:'Fraunces',serif;font-weight:500;font-size:18px;letter-spacing:-0.01em;}
+  .brand span{color:var(--signal);}
+  .navlinks{display:flex;gap:32px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;transition:color .15s;}
+  .navlinks a:hover{color:var(--ink);}
+  .nav-cta{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;
+    border:1px solid var(--ink);padding:8px 16px;border-radius:2px;
+    text-decoration:none;white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--ink);color:var(--paper);}
+  @media(max-width:860px){.navlinks{display:none;}}
+
+  .hero{padding:88px 0 56px;border-bottom:1px solid var(--line);}
+  .hero-top{display:grid;grid-template-columns:1.3fr 0.7fr;gap:64px;align-items:end;}
+  .hero-label{margin-bottom:28px;}
+  .hero h1{
+    font-size:56px;line-height:1.06;font-weight:500;
+    max-width:15ch;
+  }
+  .hero h1 em{font-style:italic;font-weight:400;color:var(--signal);}
+  .hero-sub{
+    margin-top:24px;font-size:17px;color:var(--ink-soft);max-width:46ch;line-height:1.65;
+  }
+  .hero-illo{width:100%;height:auto;}
+  @media(max-width:900px){
+    .hero-top{grid-template-columns:1fr;}
+    .hero h1{font-size:38px;max-width:none;}
+  }
+
+  .stat-rail{
+    margin-top:56px;
+    display:grid;grid-template-columns:repeat(5,1fr);
+    border-top:1px solid var(--line);
+  }
+  .stat-cell{padding:20px 24px 0 0;border-right:1px solid var(--line);}
+  .stat-cell:last-child{border-right:none;}
+  .stat-val{font-family:'IBM Plex Mono',monospace;font-size:22px;color:var(--signal);}
+  .stat-val.data{color:var(--data);}
+  .stat-lbl{font-size:12px;color:var(--ink-mute);margin-top:6px;}
+  @media(max-width:900px){.stat-rail{grid-template-columns:repeat(2,1fr);}.stat-cell{border-right:none;border-bottom:1px solid var(--line);padding:16px 0;}}
+
+  section{padding:80px 0;border-bottom:1px solid var(--line);}
+  .sec-head{display:grid;grid-template-columns:220px 1fr;gap:48px;margin-bottom:44px;}
+  .sec-num{display:flex;align-items:baseline;gap:10px;padding-top:6px;}
+  .sec-n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-mute);}
+  .sec-label{font-family:'Inter',sans-serif;font-weight:600;font-size:19px;color:var(--ink);}
+  .sec-title{font-size:32px;max-width:16ch;}
+  @media(max-width:760px){.sec-head{grid-template-columns:1fr;gap:12px;}}
+
+  .body-col{display:grid;grid-template-columns:220px 1fr;gap:48px;}
+  .body-col .filler{}
+  .lede{font-size:19px;color:var(--ink);max-width:62ch;line-height:1.6;font-family:'Fraunces',serif;font-weight:400;}
+  p.p{color:var(--ink-soft);max-width:62ch;margin-top:16px;}
+  p.p strong{color:var(--ink);font-weight:500;}
+  p.p em{color:var(--signal);font-style:normal;}
+  @media(max-width:760px){.body-col{grid-template-columns:1fr;}}
+
+  .exclude-wrap{margin-top:32px;}
+  .exclude-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;
+    border:1px solid var(--line-strong);padding:7px 12px;margin:0 8px 8px 0;
+    color:var(--ink-soft);border-radius:2px;
+  }
+  .exclude-tag::before{content:'\00d7';color:var(--data);font-weight:500;}
+
+  .principles{margin-top:36px;border-top:1px solid var(--line);}
+  .principle{
+    display:grid;grid-template-columns:56px 1fr;gap:20px;
+    padding:22px 0;border-bottom:1px solid var(--line);
+  }
+  .principle-n{font-family:'IBM Plex Mono',monospace;color:var(--ink-mute);font-size:13px;}
+  .principle p{color:var(--ink-soft);}
+  .principle strong{color:var(--ink);font-weight:500;}
+
+  .diagram-frame{
+    background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;
+    padding:32px;margin-top:8px;
+  }
+  .stack-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;
+    background:var(--signal-soft);color:var(--signal-deep);
+    padding:6px 10px;border-radius:2px;
+  }
+
+  .app-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);margin-top:8px;}
+  .app-card{background:var(--paper);padding:32px;}
+  .app-icon{width:36px;height:36px;margin-bottom:20px;}
+  .app-card h3{font-size:19px;margin-bottom:10px;}
+  .app-card p{color:var(--ink-soft);font-size:14.5px;}
+  @media(max-width:760px){.app-grid{grid-template-columns:1fr;}}
+
+  .roadmap{margin-top:8px;border-top:1px solid var(--line);}
+  .rm-row{
+    display:grid;grid-template-columns:140px 100px 1fr 120px;gap:24px;
+    padding:20px 0;border-bottom:1px solid var(--line);align-items:center;
+  }
+  .rm-row.head{color:var(--ink-mute);font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:12px;}
+  .rm-loc{font-family:'Fraunces',serif;font-size:17px;}
+  .rm-status{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 8px;border-radius:2px;width:fit-content;}
+  .rm-status.live{background:var(--signal-soft);color:var(--signal-deep);}
+  .rm-status.next{background:var(--data-soft);color:var(--data);}
+  .rm-status.plan{background:var(--paper-raised);color:var(--ink-mute);border:1px solid var(--line);}
+  .rm-desc{color:var(--ink-soft);font-size:14px;}
+  .rm-metric{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);text-align:right;}
+  @media(max-width:760px){.rm-row{grid-template-columns:1fr;gap:6px;padding:16px 0;}.rm-row.head{display:none;}.rm-metric{text-align:left;}}
+
+  .funding-box{
+    background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;
+    padding:36px;margin-top:8px;
+    display:grid;grid-template-columns:1fr 1fr;gap:40px;
+  }
+  .funding-box h3{font-size:18px;margin-bottom:12px;}
+  .funding-box p{color:var(--ink-soft);font-size:14.5px;}
+  .flow-mini{display:flex;flex-direction:column;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+  .flow-mini-row{display:flex;align-items:center;gap:10px;color:var(--ink-soft);}
+  .flow-dot{width:6px;height:6px;border-radius:50%;background:var(--data);flex-shrink:0;}
+  @media(max-width:760px){.funding-box{grid-template-columns:1fr;}}
+
+  .entity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-top:8px;}
+  .entity-card{background:var(--paper);padding:28px;}
+  .entity-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.04em;}
+  .entity-card h3{font-size:17px;margin:10px 0 10px;}
+  .entity-card p{color:var(--ink-soft);font-size:13.5px;}
+  @media(max-width:760px){.entity-grid{grid-template-columns:1fr;}}
+
+  .cta-section{padding:96px 0;text-align:center;border-bottom:1px solid var(--line);}
+  .cta-section h2{font-size:38px;max-width:20ch;margin:0 auto;}
+  .cta-section p{color:var(--ink-soft);margin:20px auto 36px;max-width:48ch;}
+  .cta-buttons{display:flex;gap:16px;justify-content:center;}
+  .btn-primary{
+    font-family:'IBM Plex Mono',monospace;font-size:13.5px;
+    background:var(--ink);color:var(--paper);
+    padding:14px 28px;border-radius:2px;text-decoration:none;
+  }
+  .btn-secondary{
+    font-family:'IBM Plex Mono',monospace;font-size:13.5px;
+    border:1px solid var(--line-strong);color:var(--ink);
+    padding:14px 28px;border-radius:2px;text-decoration:none;
+  }
+  footer{padding:40px 0;}
+  .foot-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+  .foot-links{display:flex;gap:24px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-mute);}
+  .foot-links a{text-decoration:none;}
+  .foot-links a:hover{color:var(--ink);}
+  .foot-note{font-size:12px;color:var(--ink-mute);font-family:'IBM Plex Mono',monospace;}
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="brand">PLR</div>
+    <div class="navlinks">
+      <a href="#thesis">Thesis</a>
+      <a href="#method">Method</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#applications">Applications</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#funding">Funding</a>
+    </div>
+    <a class="nav-cta" href="#contact">Request memo</a>
+  </nav>
+</header>
+
+<section class="hero" id="thesis">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow hero-label">Research memo</div>
+        <h1>A language model that has never read <em>a single sentence.</em></h1>
+        <p class="hero-sub">We are training a large language model on one input class only: raw video of human crowds moving through public space. No web crawl, no licensed text, no transfer from an existing model. The goal is a population behavior model. It also produces a ground truth motion corpus for humanoid and logistics robots, built entirely from what cameras observe.</p>
+      </div>
+      <svg class="hero-illo" viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a camera scanning a crowd of pedestrians, converting movement into data points">
+        <rect x="0" y="0" width="320" height="260" fill="none"/>
+        <g stroke="var(--line-strong)" stroke-width="1">
+          <line x1="0" y1="216" x2="320" y2="216"/>
+          <line x1="40" y1="0" x2="40" y2="260" stroke-dasharray="2 4"/>
+          <line x1="280" y1="0" x2="280" y2="260" stroke-dasharray="2 4"/>
+        </g>
+        <g fill="var(--ink)">
+          <circle cx="70" cy="196" r="6"/><rect x="66" y="204" width="8" height="14"/>
+          <circle cx="100" cy="200" r="6"/><rect x="96" y="208" width="8" height="12"/>
+          <circle cx="135" cy="192" r="7"/><rect x="130" y="201" width="10" height="16"/>
+          <circle cx="170" cy="199" r="6"/><rect x="166" y="207" width="8" height="12"/>
+          <circle cx="205" cy="194" r="6.5"/><rect x="200" y="203" width="9" height="14"/>
+          <circle cx="238" cy="200" r="6"/><rect x="234" y="208" width="8" height="12"/>
+        </g>
+        <g fill="var(--signal)" opacity="0.85">
+          <circle cx="118" cy="198" r="2.5"/>
+          <circle cx="153" cy="190" r="2.5"/>
+          <circle cx="188" cy="197" r="2.5"/>
+          <circle cx="222" cy="196" r="2.5"/>
+        </g>
+        <g stroke="var(--signal)" stroke-width="1" opacity="0.5">
+          <line x1="70" y1="196" x2="160" y2="40"/>
+          <line x1="238" y1="200" x2="160" y2="40"/>
+          <line x1="70" y1="196" x2="238" y2="200" stroke-dasharray="2 4"/>
+        </g>
+        <g>
+          <rect x="146" y="18" width="28" height="22" rx="2" fill="var(--paper-raised)" stroke="var(--ink)" stroke-width="1.4"/>
+          <circle cx="160" cy="29" r="6" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+          <circle cx="160" cy="29" r="2" fill="var(--signal)"/>
+          <rect x="168" y="22" width="4" height="4" fill="var(--ink)"/>
+        </g>
+        <text x="20" y="238" font-family="IBM Plex Mono" font-size="9" fill="var(--ink-mute)">FRAME_T</text>
+        <text x="252" y="238" font-family="IBM Plex Mono" font-size="9" fill="var(--ink-mute)">FRAME_T+15S</text>
+      </svg>
+    </div>
+
+    <div class="stat-rail">
+      <div class="stat-cell"><div class="stat-val" id="live-count">2,847</div><div class="stat-lbl">Live count, Times Sq node</div></div>
+      <div class="stat-cell"><div class="stat-val">100%</div><div class="stat-lbl">Video-only training input</div></div>
+      <div class="stat-cell"><div class="stat-val">0</div><div class="stat-lbl">External text or web sources</div></div>
+      <div class="stat-cell"><div class="stat-val">1</div><div class="stat-lbl">Live node, N more planned</div></div>
+      <div class="stat-cell"><div class="stat-val data">06</div><div class="stat-lbl">Funding mechanism, section 6</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">01</span><span class="sec-label">The problem</span></div>
+      <h2 class="sec-title">Every existing model inherits someone's edit</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">Population-scale intelligence today is downstream of an editor. News, search indices, social platforms, and government releases all pass through a filtering, framing, or reporting layer before a model ever sees them.</p>
+        <p class="p">That layer is useful for language. It is a liability for a model whose job is to describe <strong>what a population is actually doing</strong> in physical space. A model trained on how an event was <em>covered</em> is not the same as a model trained on how a crowd <em>moved</em>. We believe that second dataset has never really been built at scale. Building it is the point of this research.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">02</span><span class="sec-label">The method</span></div>
+      <h2 class="sec-title">One input class, deliberately</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">The training corpus is built from one source type: continuous camera streams of public pedestrian activity. Nothing else enters the pipeline.</p>
+        <p class="p">Frames are pulled at fixed intervals, pedestrians are detected and counted, and every observation is timestamped and stored. No interpretation is added beyond what the video itself shows. The corpus is the record of movement, not a description of it.</p>
+        <div class="exclude-wrap">
+          <span class="exclude-tag">Web crawl data</span>
+          <span class="exclude-tag">News or media text</span>
+          <span class="exclude-tag">Social platforms</span>
+          <span class="exclude-tag">Search indices</span>
+          <span class="exclude-tag">Government or census feeds</span>
+          <span class="exclude-tag">Any existing LLM's weights</span>
+          <span class="exclude-tag">Synthetic or simulated data</span>
+        </div>
+
+        <div class="principles">
+          <div class="principle">
+            <div class="principle-n">01</div>
+            <div><p><strong>No language input, of any kind.</strong> The corpus contains no text, transcripts, captions, or metadata sourced from language.</p></div>
+          </div>
+          <div class="principle">
+            <div class="principle-n">02</div>
+            <div><p><strong>No transfer learning.</strong> The model is not fine-tuned or distilled from GPT, Gemini, Claude, or any other pretrained system.</p></div>
+          </div>
+          <div class="principle">
+            <div class="principle-n">03</div>
+            <div><p><strong>Multi-source verification.</strong> Where possible, multiple camera angles cross-reference a single location and counts are reconciled before they enter the corpus, to limit single-point manipulation.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">03</span><span class="sec-label">Architecture</span></div>
+      <h2 class="sec-title">From a public sidewalk to a training corpus</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">The pipeline is simple by design. Every stage is a well-understood, independently auditable component, not a black box.</p>
+        <div class="diagram-frame">
+          <svg viewBox="0 0 1000 130" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pipeline diagram: camera feed to frame extraction to pedestrian detection to storage layer to training corpus">
+            <g font-family="IBM Plex Mono" font-size="11" fill="var(--ink)">
+              <g>
+                <rect x="0" y="35" width="150" height="60" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+                <text x="14" y="58" font-weight="500">Camera feed</text>
+                <text x="14" y="76" fill="var(--ink-mute)" font-size="10">Fixed FOV, 15s pull</text>
+              </g>
+              <path d="M150 65 L188 65" stroke="var(--ink-mute)" stroke-width="1"/>
+              <path d="M182 60 L188 65 L182 70" stroke="var(--ink-mute)" stroke-width="1" fill="none"/>
+              <g>
+                <rect x="190" y="35" width="150" height="60" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+                <text x="204" y="58" font-weight="500">Detection</text>
+                <text x="204" y="76" fill="var(--ink-mute)" font-size="10">YOLOv8, person class</text>
+              </g>
+              <path d="M340 65 L378 65" stroke="var(--ink-mute)" stroke-width="1"/>
+              <path d="M372 60 L378 65 L372 70" stroke="var(--ink-mute)" stroke-width="1" fill="none"/>
+              <g>
+                <rect x="380" y="35" width="150" height="60" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+                <text x="394" y="58" font-weight="500">Oracle read</text>
+                <text x="394" y="76" fill="var(--ink-mute)" font-size="10">20s cycle, on-chain</text>
+              </g>
+              <path d="M530 65 L568 65" stroke="var(--ink-mute)" stroke-width="1"/>
+              <path d="M562 60 L568 65 L562 70" stroke="var(--ink-mute)" stroke-width="1" fill="none"/>
+              <g>
+                <rect x="570" y="35" width="150" height="60" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+                <text x="584" y="58" font-weight="500">Storage layer</text>
+                <text x="584" y="76" fill="var(--ink-mute)" font-size="10">Counts + frames archived</text>
+              </g>
+              <path d="M720 65 L758 65" stroke="var(--ink-mute)" stroke-width="1"/>
+              <path d="M752 60 L758 65 L752 70" stroke="var(--ink-mute)" stroke-width="1" fill="none"/>
+              <g>
+                <rect x="760" y="35" width="150" height="60" rx="3" fill="var(--signal-soft)" stroke="var(--signal)" stroke-width="1.2"/>
+                <text x="774" y="58" font-weight="500" fill="var(--signal-deep)">Training corpus</text>
+                <text x="774" y="76" fill="var(--signal-deep)" font-size="10">Video-only, growing</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="stack-chips">
+          <span class="chip">FFmpeg</span>
+          <span class="chip">YOLOv8n</span>
+          <span class="chip">OpenCV</span>
+          <span class="chip">Upstash Redis</span>
+          <span class="chip">Supabase Postgres</span>
+          <span class="chip">Cloudflare R2</span>
+          <span class="chip">Switchboard oracle</span>
+          <span class="chip">Solana / Anchor</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="applications">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">04</span><span class="sec-label">Applications</span></div>
+      <h2 class="sec-title">Why a robotics team would want this corpus</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">Simulated pedestrian environments are cheap to generate and easy to overfit to. Real, longitudinal crowd footage is neither, and that scarcity is the point.</p>
+      </div>
+    </div>
+    <div class="app-grid">
+      <div class="app-card">
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="10" r="5" stroke="var(--signal)" stroke-width="1.4"/><path d="M8 30c0-6 4.5-10 10-10s10 4 10 10" stroke="var(--signal)" stroke-width="1.4"/><path d="M8 30h20" stroke="var(--ink)" stroke-width="1.2"/></svg>
+        <h3>Humanoid motion planning</h3>
+        <p>How people pause, turn, yield, and re-route around each other, observed at scale rather than scripted, gives a humanoid model a reference for socially plausible movement.</p>
+      </div>
+      <div class="app-card">
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><rect x="5" y="16" width="14" height="10" rx="1.5" stroke="var(--signal)" stroke-width="1.4"/><circle cx="9" cy="28" r="2.5" stroke="var(--ink)" stroke-width="1.2"/><circle cx="17" cy="28" r="2.5" stroke="var(--ink)" stroke-width="1.2"/><path d="M19 20h6l4 6v0h-10" stroke="var(--signal)" stroke-width="1.4"/></svg>
+        <h3>Logistics pathfinding</h3>
+        <p>Dense, high-traffic urban footage teaches a navigation model how to route through unpredictable human flow. This is a real crosswalk, not a warehouse aisle.</p>
+      </div>
+      <div class="app-card">
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><path d="M18 4v6M18 26v6M4 18h6M26 18h6" stroke="var(--ink)" stroke-width="1.4"/><circle cx="18" cy="18" r="7" stroke="var(--signal)" stroke-width="1.4"/></svg>
+        <h3>Longitudinal signal</h3>
+        <p>The same location, recorded continuously across seasons and conditions, lets the model learn how a baseline crowd differs from an anomalous one. It learns this without ever being told what an anomaly is.</p>
+      </div>
+      <div class="app-card">
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><rect x="6" y="6" width="24" height="24" rx="2" stroke="var(--ink)" stroke-width="1.4"/><path d="M6 14h24M14 6v24" stroke="var(--signal)" stroke-width="1.4"/></svg>
+        <h3>No institutional prior</h3>
+        <p>Because the corpus has no text or curated-dataset component, its outputs aren't shaped by whatever bias already lives inside another lab's model.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">05</span><span class="sec-label">Data provenance</span></div>
+      <h2 class="sec-title">One live node today, a network by design</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">Each new location is a new camera, a new node, and a new slice of the corpus. Locations are chosen for pedestrian density and, where possible, existing third-party traffic data to cross-validate against.</p>
+      </div>
+    </div>
+    <div class="roadmap">
+      <div class="rm-row head"><div>Node</div><div>Status</div><div>Notes</div><div>Signal</div></div>
+      <div class="rm-row">
+        <div class="rm-loc">Times Square, NYC</div>
+        <div><span class="rm-status live">Live</span></div>
+        <div class="rm-desc">First node. Fixed camera, continuous 15s frame capture, oracle-verified counts.</div>
+        <div class="rm-metric">~2,800 / hr</div>
+      </div>
+      <div class="rm-row">
+        <div class="rm-loc">Shibuya Crossing, Japan</div>
+        <div><span class="rm-status next">Next</span></div>
+        <div class="rm-desc">One of the busiest pedestrian scramble crossings in the world, with dense, well-documented crowd flow patterns.</div>
+        <div class="rm-metric">In setup</div>
+      </div>
+      <div class="rm-row">
+        <div class="rm-loc">Additional high-density nodes</div>
+        <div><span class="rm-status plan">Planned</span></div>
+        <div class="rm-desc">Selection ranked by pedestrian density and availability of a fixed, self-owned or public camera source.</div>
+        <div class="rm-metric">Roadmap</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="funding">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">06</span><span class="sec-label">Funding mechanism</span></div>
+      <h2 class="sec-title">Compute has to come from somewhere</h2>
+    </div>
+    <div class="body-col">
+      <div class="filler"></div>
+      <div>
+        <p class="lede">Camera infrastructure, storage, and eventual training compute are funded through a token protocol licensed from Pedestrian Language Research. The funding flows in that direction, not the other way around. The research is the product, and the token is the funding rail.</p>
+        <div class="funding-box">
+          <div>
+            <h3>The short version</h3>
+            <p>Each location node can be paired with a location-anchored token whose activity helps fund that node's camera and data infrastructure. PLR holds the underlying research IP and licenses protocol deployment to a separate treasury entity, keeping research and token operations at arm's length.</p>
+          </div>
+          <div class="flow-mini">
+            <div class="flow-mini-row"><span class="flow-dot"></span>Location node goes live</div>
+            <div class="flow-mini-row"><span class="flow-dot"></span>Token protocol licensed for that node</div>
+            <div class="flow-mini-row"><span class="flow-dot"></span>Proceeds fund camera + storage costs</div>
+            <div class="flow-mini-row"><span class="flow-dot"></span>Node output feeds the training corpus</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="entity">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num"><span class="sec-n">07</span><span class="sec-label">Structure</span></div>
+      <h2 class="sec-title">Who holds what</h2>
+    </div>
+    <div class="entity-grid">
+      <div class="entity-card">
+        <div class="entity-tag">Research</div>
+        <h3>PLR</h3>
+        <p>Pedestrian Language Research developed the protocol and holds the underlying IP, including the training methodology and corpus.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-tag">Funding</div>
+        <h3>Licensing partner</h3>
+        <p>A separate treasury entity licenses the protocol to mint and hold location-based tokens, keeping funding operations at arm's length from the research IP.</p>
+      </div>
+      <div class="entity-card">
+        <div class="entity-tag">Governance</div>
+        <h3>Holding structure</h3>
+        <p>A holding and trust structure governs downstream capital flows across entities, with formal transfer pricing between the research and funding layers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="contact" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="eyebrow" style="justify-content:center;">Diligence</div>
+    <h2 style="margin-top:16px;">Request the full research memo</h2>
+    <p>A longer technical writeup covers the detection pipeline, data integrity safeguards, corpus growth model, and entity structure in more detail.</p>
+    <div class="cta-buttons">
+      <a class="btn-primary" href="mailto:research@crowdcastprotocol.info">Request the memo</a>
+      <a class="btn-secondary" href="#architecture">Review the architecture</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <div class="foot-note">Pedestrian Language Research, video-only training corpus</div>
+    <div class="foot-links">
+      <a href="#thesis">Thesis</a>
+      <a href="#method">Method</a>
+      <a href="#funding">Funding</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('section, .hero').forEach(el=>el.classList.add('reveal'));
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+let count = 2847;
+setInterval(()=>{
+  count += Math.floor(Math.random()*7)-2;
+  if(count<2600) count = 2600;
+  document.getElementById('live-count').textContent = count.toLocaleString();
+},3000);
+</script>
+
+</body>
+</html>
