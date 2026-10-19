@@ -1,10 +1,12 @@
-<!DOCTYPE html><html lang="en" style=""><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pedestrian Language Research: A language model trained on nothing but the crowd</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&amp;family=Inter:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#F3F4EE; --paper-raised:#FFFFFF; --ink:#14181A; --ink-soft:#4B5457;
@@ -26,7 +28,7 @@
   nav{max-width:1180px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;}
   .brand{font-family:'Fraunces',serif;font-weight:500;font-size:18px;letter-spacing:-0.01em;}
   .brand span{color:var(--signal);}
-  .navlinks{display:flex;gap:32px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .navlinks{display:flex;gap:28px;font-size:13px;font-family:'IBM Plex Mono',monospace;}
   .navlinks a{color:var(--ink-soft);text-decoration:none;transition:color .15s;}
   .navlinks a:hover{color:var(--ink);}
   .nav-cta{font-family:'IBM Plex Mono',monospace;font-size:13px;border:1px solid var(--ink);padding:8px 16px;border-radius:2px;text-decoration:none;white-space:nowrap;}
@@ -36,7 +38,7 @@
   .hero{padding:88px 0 56px;border-bottom:1px solid var(--line);}
   .hero-top{display:grid;grid-template-columns:1.3fr 0.7fr;gap:64px;align-items:end;}
   .hero-label{margin-bottom:28px;}
-  .hero h1{font-size:56px;line-height:1.06;font-weight:500;max-width:15ch;}
+  .hero h1{font-size:52px;line-height:1.1;font-weight:500;max-width:17ch;}
   .hero h1 em{font-style:italic;font-weight:400;color:var(--signal);}
   .hero-sub{margin-top:24px;font-size:17px;color:var(--ink-soft);max-width:46ch;line-height:1.65;}
   @media(max-width:900px){.hero-top{grid-template-columns:1fr;}.hero h1{font-size:38px;max-width:none;}}
@@ -54,7 +56,7 @@
   .sec-num{display:flex;align-items:baseline;gap:10px;padding-top:6px;}
   .sec-n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-mute);}
   .sec-label{font-family:'Inter',sans-serif;font-weight:600;font-size:19px;color:var(--ink);}
-  .sec-title{font-size:32px;max-width:16ch;}
+  .sec-title{font-size:32px;max-width:18ch;}
   @media(max-width:760px){.sec-head{grid-template-columns:1fr;gap:12px;}}
 
   .body-col{display:grid;grid-template-columns:220px 1fr;gap:48px;}
@@ -92,6 +94,7 @@
   .rm-status{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 8px;border-radius:2px;width:fit-content;}
   .rm-status.live{background:var(--signal-soft);color:var(--signal-deep);}
   .rm-status.next{background:var(--data-soft);color:var(--data);}
+  .rm-status.pending{background:var(--paper-raised);color:var(--ink-soft);border:1px solid var(--line-strong);}
   .rm-status.plan{background:var(--paper-raised);color:var(--ink-mute);border:1px solid var(--line);}
   .rm-desc{color:var(--ink-soft);font-size:14px;}
   .rm-metric{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft);text-align:right;}
@@ -127,9 +130,13 @@
 
   .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease;}
   .reveal.in{opacity:1;transform:translateY(0);}
-</style><style id="htmlpub-breakpoint-visibility">@media (max-width: 767px) { .hp-hide-mobile { display: none !important; } }
-@media (min-width: 768px) and (max-width: 1199px) { .hp-hide-tablet { display: none !important; } }
-@media (min-width: 1200px) { .hp-hide-desktop { display: none !important; } }</style></head>
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .reveal{opacity:1;transform:none;transition:none;}
+  }
+</style>
+</head>
 <body>
 
 <header>
@@ -140,6 +147,7 @@
       <a href="#method">Method</a>
       <a href="#architecture">Architecture</a>
       <a href="#applications">Applications</a>
+      <a href="#inhouse">Branches</a>
       <a href="#roadmap">Roadmap</a>
       <a href="#funding">Funding</a>
     </div>
@@ -152,8 +160,8 @@
     <div class="hero-top">
       <div>
         <div class="eyebrow hero-label">Research memo</div>
-        <h1>A language model research that has never read <em>a single sentence</em> created for the public domain</h1>
-        <p class="hero-sub">We are training a large language model on one input class only: raw video of human crowds moving through public space. No web crawl, no licensed text, no transfer from an existing model. The goal is a population behavior model. It also produces a ground truth motion corpus for public usage, local law enforcements, logistical robots, and more built entirely from what cameras observe.</p>
+        <h1>A language model that has never read <em>a single sentence</em> written for public consumption</h1>
+        <p class="hero-sub">We are training a large language model on one input class only: raw video of human crowds moving through public space. No web crawl, no licensed text, no transfer from an existing model. The goal is a population behavior model. Built entirely from what cameras observe, it also produces a ground-truth motion corpus with uses in public planning, logistics robotics, and beyond.</p>
       </div>
       <svg class="hero-illo" viewBox="0 0 360 220" fill="none" aria-hidden="true">
         <rect x="130" y="10" width="100" height="70" fill="none"></rect>
@@ -181,7 +189,7 @@
       <div class="stat-cell"><div class="stat-val" id="live-count">2,855</div><div class="stat-lbl">Live count, Times Sq node</div></div>
       <div class="stat-cell"><div class="stat-val">100%</div><div class="stat-lbl">Video-only training input</div></div>
       <div class="stat-cell"><div class="stat-val">0</div><div class="stat-lbl">External text or web sources</div></div>
-      <div class="stat-cell"><div class="stat-val">1</div><div class="stat-lbl">Live node, N more planned</div></div>
+      <div class="stat-cell"><div class="stat-val">1</div><div class="stat-lbl">Node in deployment, more planned</div></div>
       <div class="stat-cell"><div class="stat-val data">06</div><div class="stat-lbl">Funding mechanism, section 6</div></div>
     </div>
   </div>
@@ -253,11 +261,11 @@
               <text x="145" y="50" font-size="9" fill="#14181A">Detection</text>
               <text x="145" y="66" font-size="8" fill="#8A9190">YOLOv8n, person class</text>
               <rect x="260" y="30" width="110" height="48" rx="3" stroke="#14181A" stroke-width="1.2" fill="#fff"></rect>
-              <text x="270" y="50" font-size="9" fill="#14181A">Oracle reads</text>
-              <text x="270" y="66" font-size="8" fill="#8A9190">600 cycle or stream</text>
+              <text x="270" y="50" font-size="9" fill="#14181A">Oracle read</text>
+              <text x="270" y="66" font-size="8" fill="#8A9190">20s cycle, on-chain</text>
               <rect x="390" y="30" width="105" height="48" rx="3" stroke="#14181A" stroke-width="1.2" fill="#fff"></rect>
-              <text x="400" y="50" font-size="9" fill="#14181A">Storage layers</text>
-              <text x="400" y="66" font-size="8" fill="#8A9190">frames / tensor verbatim</text>
+              <text x="400" y="50" font-size="9" fill="#14181A">Storage layer</text>
+              <text x="400" y="66" font-size="8" fill="#8A9190">Counts + frames archived</text>
               <rect x="515" y="30" width="112" height="48" rx="3" stroke="#1F5C56" stroke-width="1.2" fill="#E5EEEA"></rect>
               <text x="525" y="50" font-size="9" fill="#123934">Training corpus</text>
               <text x="525" y="66" font-size="8" fill="#123934">video-only, growing</text>
@@ -279,29 +287,29 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-num"><span class="sec-n">04</span><span class="sec-label">Applications</span></div>
-      <h2 class="sec-title">Why a robotics team would want this corpus?</h2>
+      <h2 class="sec-title">Why a robotics team would want this corpus</h2>
     </div>
     <div class="body-col"><div></div><div>
       <p class="lede">Simulated pedestrian environments are cheap to generate and easy to overfit to. Real, longitudinal crowd footage is neither, and that scarcity is the point.</p>
     </div></div>
     <div class="app-grid">
       <div class="app-card">
-        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="10" r="5" stroke="#1F5C56" stroke-width="1.4"></circle><path d="M8 30c0-6 4.5-10 10-10s10 4 10 10" stroke="#1F5C56" stroke-width="1.4"></path><path d="M8 30h20" stroke="#14181A" stroke-width="1.2"></path></svg>
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none" aria-hidden="true"><circle cx="18" cy="10" r="5" stroke="#1F5C56" stroke-width="1.4"></circle><path d="M8 30c0-6 4.5-10 10-10s10 4 10 10" stroke="#1F5C56" stroke-width="1.4"></path><path d="M8 30h20" stroke="#14181A" stroke-width="1.2"></path></svg>
         <h3>Humanoid motion planning</h3>
         <p>How people pause, turn, yield, and re-route around each other, observed at scale rather than scripted, gives a humanoid model a reference for socially plausible movement.</p>
       </div>
       <div class="app-card">
-        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><rect x="5" y="16" width="14" height="10" rx="1.5" stroke="#1F5C56" stroke-width="1.4"></rect><circle cx="9" cy="28" r="2.5" stroke="#14181A" stroke-width="1.2"></circle><circle cx="17" cy="28" r="2.5" stroke="#14181A" stroke-width="1.2"></circle><path d="M19 20h6l4 6h-10" stroke="#1F5C56" stroke-width="1.4"></path></svg>
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect x="5" y="16" width="14" height="10" rx="1.5" stroke="#1F5C56" stroke-width="1.4"></rect><circle cx="9" cy="28" r="2.5" stroke="#14181A" stroke-width="1.2"></circle><circle cx="17" cy="28" r="2.5" stroke="#14181A" stroke-width="1.2"></circle><path d="M19 20h6l4 6h-10" stroke="#1F5C56" stroke-width="1.4"></path></svg>
         <h3>Logistics pathfinding</h3>
         <p>Dense, high-traffic urban footage teaches a navigation model how to route through unpredictable human flow. This is a real crosswalk, not a warehouse aisle.</p>
       </div>
       <div class="app-card">
-        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><path d="M18 4v6M18 26v6M4 18h6M26 18h6" stroke="#14181A" stroke-width="1.4"></path><circle cx="18" cy="18" r="7" stroke="#1F5C56" stroke-width="1.4"></circle></svg>
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M18 4v6M18 26v6M4 18h6M26 18h6" stroke="#14181A" stroke-width="1.4"></path><circle cx="18" cy="18" r="7" stroke="#1F5C56" stroke-width="1.4"></circle></svg>
         <h3>Longitudinal signal</h3>
         <p>The same location, recorded continuously across seasons and conditions, lets the model learn how a baseline crowd differs from an anomalous one. It learns this without ever being told what an anomaly is.</p>
       </div>
       <div class="app-card">
-        <svg class="app-icon" viewBox="0 0 36 36" fill="none"><rect x="6" y="6" width="24" height="24" rx="2" stroke="#14181A" stroke-width="1.4"></rect><path d="M6 14h24M14 6v24" stroke="#1F5C56" stroke-width="1.4"></path></svg>
+        <svg class="app-icon" viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect x="6" y="6" width="24" height="24" rx="2" stroke="#14181A" stroke-width="1.4"></rect><path d="M6 14h24M14 6v24" stroke="#1F5C56" stroke-width="1.4"></path></svg>
         <h3>No institutional prior</h3>
         <p>Because the corpus has no text or curated-dataset component, its outputs aren't shaped by whatever bias already lives inside another lab's model.</p>
       </div>
@@ -312,11 +320,12 @@
 <section id="inhouse" class="reveal">
   <div class="wrap">
     <div class="sec-head">
-      <div class="sec-num"><span class="sec-n">05</span><span class="sec-label">In-house Application</span></div>
-      <h2 class="sec-title">One Corpus, Many Branches; Living Neural Networks</h2>
+      <div class="sec-num"><span class="sec-n">05</span><span class="sec-label">In-house application</span></div>
+      <h2 class="sec-title">One corpus, many branches</h2>
     </div>
     <div class="body-col"><div></div><div>
-      <p class="lede">Pedestrian Language Research (PLR) with companies like, Neuroplatform, as one branch of a larger tree. From that trunk, each compute substrate we test is a separate branch the corpus is allowed to train on, evaluated on its own terms rather than against the others. The biological substrate is one such branch, exposed to the same movement data as our detection and oracle layers to see what, if anything, a living neural network draws out of it that silicon does not. Whatever each branch returns feeds back into how the corpus is understood, not into what the corpus is, the data stays singular even as the ways of reading it grow.</p>
+      <p class="lede">Pedestrian Language Research treats work with partners like FinalSpark's Neuroplatform as one branch of a larger tree, not a replacement for the core pipeline.</p>
+      <p class="p">The trunk is the corpus itself &mdash; timestamped, oracle-verified pedestrian flow, nothing else mixed in. Each compute substrate we test, biological included, is a separate branch allowed to train on that same corpus. The branches are evaluated on their own terms, not against each other. Whatever they return shapes how the corpus is read, never what the corpus is.</p>
     </div></div>
   </div>
 </section>
@@ -325,7 +334,7 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-num"><span class="sec-n">06</span><span class="sec-label">Data provenance</span></div>
-      <h2 class="sec-title">One live node today, a network by design</h2>
+      <h2 class="sec-title">One node in deployment today, a network by design</h2>
     </div>
     <div class="body-col"><div></div><div>
       <p class="lede">Each new location is a new camera, a new node, and a new slice of the corpus. Locations are chosen for pedestrian density and, where possible, existing third-party traffic data to cross-validate against.</p>
@@ -334,9 +343,9 @@
       <div class="rm-row head"><div>Node</div><div>Status</div><div>Notes</div><div>Signal</div></div>
       <div class="rm-row">
         <div class="rm-loc">Times Square, NYC</div>
-        <div><span class="rm-status live">Pending</span></div>
+        <div><span class="rm-status pending">Pending</span></div>
         <div class="rm-desc">First node. Fixed camera, continuous 20s frame capture, oracle-verified counts.</div>
-        <div class="rm-metric">~0,000 / hr</div>
+        <div class="rm-metric">Awaiting deployment</div>
       </div>
       <div class="rm-row">
         <div class="rm-loc">Shibuya Crossing, Japan</div>
@@ -382,12 +391,12 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-num"><span class="sec-n">08</span><span class="sec-label">Structure</span></div>
-      <h2 class="sec-title">Who holds what?</h2>
+      <h2 class="sec-title">Who holds what</h2>
     </div>
     <div class="entity-grid">
       <div class="entity-card">
         <div class="entity-tag">Research</div>
-        <h3>P.L.R. - Pedestrian Language Research</h3>
+        <h3>P.L.R. &mdash; Pedestrian Language Research</h3>
         <p>Pedestrian Language Research developed the protocol and holds the underlying IP, including the training methodology and corpus.</p>
       </div>
       <div class="entity-card">
@@ -410,7 +419,7 @@
     <h2 style="margin-top:16px">Request the full research memo</h2>
     <p>A longer technical writeup covers the detection pipeline, data integrity safeguards, corpus growth model, and entity structure in more detail.</p>
     <div class="cta-buttons">
-      <a class="btn-primary" href="mailto:research@crowdcastprotocol.info">Request the memo</a>
+      <a class="btn-primary" href="mailto:research@plr.institute">Request the memo</a>
       <a class="btn-secondary" href="#architecture">Review the architecture</a>
     </div>
   </div>
@@ -429,19 +438,28 @@
 </footer>
 
 <script>
-document.querySelectorAll('section').forEach(function(el){el.classList.add('reveal');});
-var io = new IntersectionObserver(function(entries){
-  entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-},{threshold:0.08});
-document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+document.querySelectorAll('section').forEach(function(el){ el.classList.add('reveal'); });
 
-var count = 2847;
-setInterval(function(){
-  count += Math.floor(Math.random()*7)-2;
-  if(count<2600) count = 2600;
+if ('IntersectionObserver' in window) {
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+} else {
+  document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+}
+
+(function(){
   var el = document.getElementById('live-count');
-  if(el){ el.textContent = count.toLocaleString(); }
-},3000);
+  if (!el) return;
+  var count = 2855;
+  setInterval(function(){
+    count += Math.floor(Math.random() * 7) - 2;
+    if (count < 2600) count = 2600;
+    el.textContent = count.toLocaleString();
+  }, 3000);
+})();
 </script>
 
-</body></html>
+</body>
+</html>
